@@ -3,7 +3,7 @@ const transaction = {
   from: nervos.appchain.accounts.wallet[0].address,
   privateKey: nervos.appchain.accounts.wallet[0].privateKey,
   nonce: 999999,
-  quota: 1000000,
+  quota: 1000000000,
   chainId: 2,
   version: 0,
   validUntilBlock: 999999,
