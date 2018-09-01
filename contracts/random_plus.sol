@@ -1,6 +1,5 @@
 pragma solidity ^0.4.24;
 
-/* contractAddress is: 0xD95F50bCB6CA37D74356172cfcD9e7feA94dA5C8  */
 contract Random{
     struct Participant{
         uint256 secret;                       
@@ -16,10 +15,8 @@ contract Random{
     }
     
     struct Campaign {
-      uint32    bnum;
-      uint96    deposit;
-      uint16    commitBalkline;
-      uint16    commitDeadline;
+      uint startBlock;
+      uint endBlock;
       
       uint256   random;
       bool      settled;
@@ -39,7 +36,6 @@ contract Random{
         bool beSuccess;
     }
     
-    uint16 commitThreshold;
     uint16 revealThreshold;
     uint256 numCampaigns;
     LogItem[] logs;
@@ -52,37 +48,14 @@ contract Random{
     modifier NotBlank(bytes32 _s){require(_s!="");_;}
     modifier IsBlank(bytes32 _s){require(_s=="");_;}
     modifier IsFalse(bool _b){assert(!_b);_;}
-    modifier TimeLineCheck(uint32 _bnum, uint16 _commitBalkline, uint16 _commitDeadline) {
-      require(block.number < _bnum);
-      assert(_commitBalkline > 0);
-      assert(_commitDeadline > 0);
-      require(_commitDeadline < _commitBalkline);
-      require(block.number < _bnum - _commitBalkline);
-      _;
-    }
     
-    modifier CheckThreshold(uint16 _commitThreshold,uint16 _revealThreshold){
-        assert(_commitThreshold>0);
+    modifier CheckThreshold(uint16 _revealThreshold){
         assert(_revealThreshold>0);
-        require(_revealThreshold<=_commitThreshold);
         _;
     }
     
     modifier CheckFollowPhase(uint256 _bnum, uint16 _commitDeadline) {
       require(block.number <= _bnum - _commitDeadline);
-      _;
-    }
-    
-    modifier CheckDeposit(uint256 _deposit) { require(msg.value == _deposit) ; _; }
-    modifier CheckCommitPhase(uint256 _bnum, uint16 _commitBalkline, uint16 _commitDeadline) {
-      require(block.number >= _bnum - _commitBalkline);
-      require(block.number <= _bnum - _commitDeadline);
-      _;
-    }
-    
-    modifier CheckRevealPhase(uint256 _bnum, uint16 _commitDeadline) {
-      require(block.number > _bnum - _commitDeadline);
-      require(block.number < _bnum);
       _;
     }
     
@@ -103,77 +76,38 @@ contract Random{
       _;
     }
     
-    event LogCampaignAdded(uint256 indexed campaignID,
-                         address indexed from,
-                         uint32 indexed bnum,
-                         uint96 deposit,
-                         uint16 commitBalkline,
-                         uint16 commitDeadline,
-                         uint256 bountypot);
-                         
+    event LogCampaignAdded(uint256 indexed campaignID,address indexed from,uint256 bountypot);
     event LogFollow(uint256 indexed CampaignId, address indexed from, uint256 bountypot);
     event LogCommit(uint256 indexed CampaignId, address indexed from, bytes32 commitment);
     event LogReveal(uint256 indexed CampaignId, address indexed from, uint256 secret);
-    event LogSetThreshold(uint16 _commitThreshold,uint16 _revealThreshold);
+    event LogSetThreshold(uint16 _revealThreshold);
     
     function Random(){
         founder=msg.sender;
+        revealThreshold=2;
     }
     
-    function setThreshold (
-        uint16 _commitThreshold,
-        uint16 _revealThreshold) OnlyOwner CheckThreshold(_commitThreshold,_revealThreshold) external{
-            commitThreshold=_commitThreshold;
+    function setThreshold (uint16 _revealThreshold) OnlyOwner CheckThreshold(_revealThreshold) external{
             revealThreshold=_revealThreshold;
-            LogSetThreshold(_commitThreshold,_revealThreshold);
+            LogSetThreshold(_revealThreshold);
     }
     
-    function newCampaign(
-      uint32 _bnum,
-      uint96 _deposit,
-      uint16 _commitBalkline,
-      uint16 _commitDeadline
-      ) payable
-        TimeLineCheck(_bnum, _commitBalkline, _commitDeadline)
-         external returns (uint256 _campaignID) {
-          
+    function newCampaign() payable returns (uint256 _campaignID) {
           _campaignID = campaigns.length++;
           Campaign c = campaigns[_campaignID];
           numCampaigns++;
-          c.bnum = _bnum;
-          c.deposit = _deposit;
-          c.commitBalkline = _commitBalkline;
-          c.commitDeadline = _commitDeadline;
+          c.startBlock=block.number;
+          c.endBlock=c.startBlock;
           c.bountypot = msg.value;
           c.consumers[msg.sender] = Consumer(msg.sender, msg.value);
-          LogCampaignAdded(_campaignID, msg.sender, _bnum, _deposit, _commitBalkline, _commitDeadline, msg.value);
+          LogCampaignAdded(_campaignID, msg.sender, msg.value);
     }
     
-    function follow(uint256 _campaignID)external payable returns (bool) {
-          Campaign c = campaigns[_campaignID];
-          Consumer consumer = c.consumers[msg.sender];
-          return followCampaign(_campaignID, c, consumer);
-    }
-    
-    function followCampaign(
-      uint256 _campaignID,
-      Campaign storage c,
-      Consumer storage consumer
-      ) CheckFollowPhase(c.bnum, c.commitDeadline)
-        IsBlankAddress(consumer.caddr) internal returns (bool) {
-          c.bountypot += msg.value;
-          c.consumers[msg.sender] = Consumer(msg.sender, msg.value);
-          LogFollow(_campaignID, msg.sender, msg.value);
-          return true;
-    }
-    
-    function userCommit(bytes32 _hs) NotBlank(_hs) external payable{
-        uint256 campaignsLen=campaigns.length;
-        commit(campaignsLen-1,_hs);
-    }
-    
-    function commit(uint256 _campaignID, bytes32 _hs) NotBlank(_hs) payable {
+    function commit(uint256 _campaignID, bytes32 _hs) NotBlank(_hs) external payable{
+      uint campaignsLen=campaigns.length;
+      if(_campaignID+1>campaignsLen) newCampaign();
       Campaign c = campaigns[_campaignID];
+      require(!c.settled);
       commitmentCampaign(_campaignID, _hs, c);
     }
     
@@ -181,22 +115,17 @@ contract Random{
       uint256 _campaignID,
       bytes32 _hs,
       Campaign storage c
-      ) CheckDeposit(c.deposit)
-        CheckCommitPhase(c.bnum, c.commitBalkline, c.commitDeadline)
-        IsBlank(c.participants[msg.sender].commitment) internal {
+      ) IsBlank(c.participants[msg.sender].commitment) internal {
           c.participants[msg.sender] = Participant(0, _hs, 0, false, false);
           c.commitNum++;
           LogCommit(_campaignID, msg.sender, _hs);
     }
     
-    function userReveal(uint256 _s) external {
-        uint256 campaignsLen=campaigns.length;
-        reveal(campaignsLen-1,_s);
-    }
-    
-    function reveal(uint256 _campaignID, uint256 _s) internal {
+    function reveal(uint256 _campaignID, uint256 _s) external {
       Campaign c = campaigns[_campaignID];
       Participant p = c.participants[msg.sender];
+      require(!c.settled);
+      require(block.number-c.startBlock<12);
       revealCampaign(_campaignID, _s, c, p);
     }
     
@@ -204,13 +133,15 @@ contract Random{
         uint256 _campaignID,
         uint256 _s,
         Campaign storage c,
-        Participant storage p) CheckRevealPhase(c.bnum, c.commitDeadline)
-            CheckSecret(_s, p.commitment)
-            IsFalse(p.revealed) internal {
+        Participant storage p) CheckSecret(_s, p.commitment) IsFalse(p.revealed) internal {
               p.secret = _s;
               p.revealed = true;
               c.revealsNum++;
               c.random ^= p.secret;
+              if(c.revealsNum>=revealThreshold&&c.commitNum==c.revealsNum){
+                  c.endBlock=block.number;
+                  c.settled=true;
+              } 
               LogReveal(_campaignID, msg.sender, _s);
     }
     
@@ -225,10 +156,15 @@ contract Random{
         return returnRandom(_campaignID,c);
     }
 
-    function returnRandom(uint256 _campaignID,Campaign storage c) BountyPhase(c.bnum) internal returns (uint256) {
+    function returnRandom(uint256 _campaignID,Campaign storage c) internal returns (uint256) {
         uint256 _random=c.random;
-        if (c.revealsNum >= revealThreshold) {
+        if (c.settled) {
+            logCall(_campaignID,_random,true);
+            return _random;
+        }
+        if ((!c.settled)&&(block.number-c.startBlock>=12)&&(c.revealsNum >= revealThreshold)) {
             c.settled = true;
+            c.endBlock=block.number;
             logCall(_campaignID,_random,true);
             return _random;
         }
@@ -260,67 +196,6 @@ contract Random{
     function getLogItem(uint _id) returns(address,uint,uint,uint256,bool){
         LogItem item=logs[_id];
         return (item.account,item.id,item.timestamp,item.random,item.beSuccess);
-    }
-    
-    function getMyBounty(uint256 _campaignID) external {
-      Campaign c = campaigns[_campaignID];
-      Participant p = c.participants[msg.sender];
-      transferBounty(c, p);
-    }
-
-    function transferBounty(
-      Campaign storage c,
-      Participant storage p
-    ) BountyPhase(c.bnum)
-      IsFalse(p.rewarded) internal {
-      if (c.revealsNum > 0) {
-          if (p.revealed) {
-              uint256 share = calculateShare(c);
-              returnReward(share, c, p);
-          }
-      } else {
-          returnReward(0, c, p);
-      }
-    }
-
-    function calculateShare(Campaign c) internal returns (uint256 _share) {
-      if (c.commitNum > c.revealsNum) {
-          _share = fines(c) / c.revealsNum;
-      } else {
-          _share = c.bountypot / c.revealsNum;
-      }
-    }
-
-    function returnReward(
-      uint256 _share,
-      Campaign storage c,
-      Participant storage p ) internal {
-          p.reward = _share;
-          p.rewarded = true;
-          if (!msg.sender.send(_share + c.deposit)) {
-              p.reward = 0;
-              p.rewarded = false;
-          }
-    }
-
-    function fines(Campaign c) internal returns (uint256) {
-        return (c.commitNum - c.revealsNum) * c.deposit;
-    }
-
-    function refundBounty(uint256 _campaignID) external {
-          Campaign c = campaigns[_campaignID];
-          returnBounty(_campaignID, c);
-    }
-    
-    function returnBounty(uint256 _campaignID, Campaign storage c)
-        BountyPhase(c.bnum)
-        CampaignFailed(c.commitNum, c.revealsNum)
-        IsConsumer(c.consumers[msg.sender].caddr) internal {
-          uint256 bountypot = c.consumers[msg.sender].bountypot;
-          c.consumers[msg.sender].bountypot = 0;
-          if (!msg.sender.send(bountypot)) {
-              c.consumers[msg.sender].bountypot = bountypot;
-          }
     }
     
     function () payable{}
