@@ -1,0 +1,11 @@
+{
+  "name": "NurTib-test",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "@nervos/chain": "^0.17.18"
+  },
+  "scripts": {
+    "deploy": "node ./contracts/deploy.js"
+  }
+}
