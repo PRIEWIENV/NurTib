@@ -1,0 +1,14 @@
+{
+  "short_name": "RSP",
+  "name": "RSP",
+  "chainSet": {
+    "2": "http://172.16.101.142:1337"
+  },
+  "icon": "http://cdn.cryptape.com/neuron/Artboard3.png",
+  "start_url": "http://172.16.101.36:8080/",
+  "display": "standalone",
+  "theme_color": "#000000",
+  "background_color": "#ffffff",
+  "blockViewer": "https://etherscan.io/",
+  "entry": "http://172.16.101.36:8080/"
+}
