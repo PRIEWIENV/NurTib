@@ -2,6 +2,17 @@ const nervos = require('../nervos');
 const { abi  } = require('./compiled');
 const Web3Utils = require('web3-utils');
 
+const tx = {
+  from: nervos.appchain.accounts.wallet[0].address,
+  privateKey: nervos.appchain.accounts.wallet[0].privateKey,
+  nonce: 999999,
+  quota: 1000000000,
+  chainId: 2,
+  version: 0,
+  validUntilBlock: 999999,
+  value: '0x0',
+};
+
 const tx0 = {
   from: '0x17f3487df9f9331969602bf203165abf886a0ed1',
   privateKey: '0xea6b3d6d8792ab5519d89ebf54afbc906e67bf5757b717e69e1925a1d1b42154',
@@ -66,14 +77,15 @@ const randomContract = new nervos.appchain.Contract(abi, "0x130449c688a58cdEFB2B
 // nervos.appchain.getAccounts().then(console.log);
 // console.log(nervos.appchain.accounts.wallet)
 
-nervos.appchain.getMetaData().then(console.log);
+// nervos.appchain.getMetaData().then(console.log);
 
 const current_time = new Date().getTime();
 // node on appchain generates a random string
 const random_str = current_time.toString() + Math.floor((Math.random() * (1000 - 100) + 100)).toString() ;
 // hash the random string and input to the smart contracts
 const input = Web3Utils.soliditySha3(random_str)
-// console.log(typeof(input))
+console.log(input);
+console.log(typeof(input))
 
 let counter = 0;
 // console.log('counter type: ' + typeof(counter));
@@ -81,12 +93,11 @@ let counter = 0;
 
 while (counter<1){
 
-    randomContract.methods.commit(counter>>>0, input).send(tx0)
 
     nervos.appchain
         .getBlockNumber()
         .then(current => {
-            //console.log('Get current: ' + current)
+            console.log('Get current round: ' + current>>>0)
             tx0.validUntilBlock = +current + 88
             //console.log(JSON.stringify(randomContract, null, 2))
             // >>> converts number to 32-bit unsigned int
@@ -109,6 +120,16 @@ while (counter<1){
         .catch(err => {
             console.log(err)
         })
+
+    // async () => {
+    //     const current = await nervos.appchain.getBlockNumber()
+    //     tx0.validUntilBlock = +current + 88 // update transaction.validUntilBlock
+    //     const txResult = await randomContract.methods.commit(counter, input).send(tx0) // sendTransaction to the contract
+    //     const receipt = await nervos.listeners.listenToTransactionReceipt(txResult.hash) // listen to the receipt
+    //     expect(receipt.errorMessage).toBeNull()
+    //     await console.log('Result: \n' + txResult.hash)
+    //     await console.log('Receipt: \n '+ receipt)
+    // }
 
     //randomContract.methods.reveal(counter, random_str).send(tx0);
 
