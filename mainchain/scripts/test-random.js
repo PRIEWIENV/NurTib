@@ -1,10 +1,6 @@
-// import sha3 from 'solidity-sha3';
 const nervos = require('../nervos');
 const { abi  } = require('./compiled');
-// const { contractAddress } = require('../config')
-// sha3_256 = require('js-sha3').sha3_256;
-// const sha3 = require('solidity-sha3');
-var Web3Utils = require('web3-utils');
+const Web3Utils = require('web3-utils');
 
 const tx0 = {
   from: '0x17f3487df9f9331969602bf203165abf886a0ed1',
@@ -63,7 +59,7 @@ nervos.appchain.accounts.wallet.add(account2)
 nervos.appchain.accounts.wallet.add(account3)
 
 
-const randomContract = new nervos.appchain.Contract(abi, "0xD95F50bCB6CA37D74356172cfcD9e7feA94dA5C8");
+const randomContract = new nervos.appchain.Contract(abi, "0x130449c688a58cdEFB2Bc8AB631479B34eED3d1B");
 
 // nervos.appchain.getBalance(nervos.appchain.accounts.wallet[0].address).then(console.log);
 // console.log(`Interact with contract at ${contractAddress}`);
@@ -78,6 +74,7 @@ const input = Web3Utils.soliditySha3(random_str)
 // console.log(typeof(input))
 
 let counter = 0;
+console.log('counter type: ' + typeof(counter));
 
 while (counter<1){
 
@@ -87,7 +84,7 @@ while (counter<1){
             console.log('Get current: ' + current)
             tx0.validUntilBlock = +current + 88
             console.log(JSON.stringify(randomContract, null, 2))
-            return randomContract.methods.userCommit(input).send(tx0)
+            return randomContract.methods.commit(counter>>>0, input).send(tx0)
         })
         .then(res => {
             if(res){
@@ -106,17 +103,17 @@ while (counter<1){
         .catch(err => {
             console.log(err)
         })
-    //randomContract.methods.userReveal(random_str).send(tx0);
+    //randomContract.methods.reveal(counter, random_str).send(tx0);
 
 
-    //randomContract.methods.userCommit(input).send(tx1);
-    //randomContract.methods.userReveal(random_str).send(tx1);
+    //randomContract.methods.commit(input).send(tx1);
+    //randomContract.methods.reveal(random_str).send(tx1);
 
-    //randomContract.methods.userCommit(input).send(tx2);
-    //randomContract.methods.userReveal(random_str).send(tx2);
+    //randomContract.methods.commit(input).send(tx2);
+    //randomContract.methods.reveal(random_str).send(tx2);
 
-    //randomContract.methods.userCommit(input).send(tx3);
-    //randomContract.methods.userReveal(random_str).send(tx3);
+    //randomContract.methods.commit(input).send(tx3);
+    //randomContract.methods.reveal(random_str).send(tx3);
 
     console.log('Current round: ' + counter)
     counter++;

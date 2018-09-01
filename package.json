@@ -7,6 +7,6 @@
     "web3-utils": "^1.0.0-beta.36"
   },
   "scripts": {
-    "deploy": "node ./contracts/deploy.js"
+    "deploy": "node ./mainchain/scripts/deploy.js"
   }
 }
