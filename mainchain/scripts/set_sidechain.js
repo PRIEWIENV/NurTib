@@ -1,6 +1,6 @@
-const nervos = require('./nervos')
+const nervos = require('../nervos')
 
-const transaction = require('./contracts/transaction')
+const transaction = require('./transaction')
 
 nervos.system.chainManager.options.address = "0xffffffffffffffffffffffffffffffffff020002"
 
