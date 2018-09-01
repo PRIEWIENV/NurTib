@@ -1,6 +1,6 @@
-# dnarand
+# Rock-Scissors-Paper
 
-> dnarand front-end
+> Rock-Scissors-Paper front-end
 
 ## Build Setup
 
