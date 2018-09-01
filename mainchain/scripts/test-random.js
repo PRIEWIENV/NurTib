@@ -69,25 +69,31 @@ const randomContract = new nervos.appchain.Contract(abi, "0x130449c688a58cdEFB2B
 nervos.appchain.getMetaData().then(console.log);
 
 const current_time = new Date().getTime();
+// node on appchain generates a random string
 const random_str = current_time.toString() + Math.floor((Math.random() * (1000 - 100) + 100)).toString() ;
+// hash the random string and input to the smart contracts
 const input = Web3Utils.soliditySha3(random_str)
 // console.log(typeof(input))
 
 let counter = 0;
-console.log('counter type: ' + typeof(counter));
+// console.log('counter type: ' + typeof(counter));
+// console.log('counter type: ' + typeof(counter>>>0));
 
 while (counter<1){
+
+    randomContract.methods.commit(counter>>>0, input).send(tx0)
 
     nervos.appchain
         .getBlockNumber()
         .then(current => {
-            console.log('Get current: ' + current)
+            //console.log('Get current: ' + current)
             tx0.validUntilBlock = +current + 88
-            console.log(JSON.stringify(randomContract, null, 2))
+            //console.log(JSON.stringify(randomContract, null, 2))
+            // >>> converts number to 32-bit unsigned int
             return randomContract.methods.commit(counter>>>0, input).send(tx0)
         })
         .then(res => {
-            if(res){
+            if(res.hash){
                 return nervos.listeners.listenToTransactionReceipt(res)
             } else {
                 throw new Error('No Transaction Hash Received')
@@ -103,6 +109,7 @@ while (counter<1){
         .catch(err => {
             console.log(err)
         })
+
     //randomContract.methods.reveal(counter, random_str).send(tx0);
 
 
