@@ -1,6 +1,6 @@
 pragma solidity ^0.4.24;
 
-/* contractAddress is: 0xA11EC3D1c443e93360C121Ad501699bd2b16a624 */
+/* contractAddress is: 0xD95F50bCB6CA37D74356172cfcD9e7feA94dA5C8  */
 contract Random{
     struct Participant{
         uint256 secret;                       
@@ -45,8 +45,7 @@ contract Random{
     LogItem[] logs;
     Campaign[] campaigns;
     address public founder;
-    address[] contracts;
-    
+
     modifier OnlyOwner(){ require(founder==msg.sender);_;}
     modifier IsBlankAddress(address _n){assert(_n==0);_;}
     modifier IsPositive(uint256 _deposit){assert(_deposit>0);_;}
@@ -168,8 +167,9 @@ contract Random{
           return true;
     }
     
-    function commitCurrent(bytes32 _hs) NotBlank(_hs) external payable{
-        
+    function userCommit(bytes32 _hs) NotBlank(_hs) external payable{
+        uint256 campaignsLen=campaigns.length;
+        commit(campaignsLen-1,_hs);
     }
     
     function commit(uint256 _campaignID, bytes32 _hs) NotBlank(_hs) payable {
@@ -189,7 +189,12 @@ contract Random{
           LogCommit(_campaignID, msg.sender, _hs);
     }
     
-    function reveal(uint256 _campaignID, uint256 _s) external {
+    function userReveal(uint256 _s) external {
+        uint256 campaignsLen=campaigns.length;
+        reveal(campaignsLen-1,_s);
+    }
+    
+    function reveal(uint256 _campaignID, uint256 _s) internal {
       Campaign c = campaigns[_campaignID];
       Participant p = c.participants[msg.sender];
       revealCampaign(_campaignID, _s, c, p);
@@ -316,21 +321,6 @@ contract Random{
           if (!msg.sender.send(bountypot)) {
               c.consumers[msg.sender].bountypot = bountypot;
           }
-    }
-    
-    function registerContract(address _contract) external{
-        uint contractsLen=contracts.length++;
-        contracts[contractsLen]=_contract;
-    }
-    
-    function giveRandom(address _contract) public {
-        uint contractsLen=contracts.length;
-        for(uint i=0;i<contractsLen;i++){
-            if(contracts[i]==_contract){
-                uint256 _c_random=getCurrentRandom();
-                
-            }
-        }
     }
     
     function () payable{}
