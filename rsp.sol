@@ -16,11 +16,10 @@ contract RockScissorsPaper {
     }
 
     //the user plays one roll of the machine putting in money for the win
-    function oneRound(uint sendNumber) {
+    function oneRound(uint sendNumber) returns(uint){
         uint rand = randomGen(sendNumber%3);
-
         Round(msg.sender, rand);
-        
+        return rand;
     }
     
     function contractBalance() constant returns(uint) {
