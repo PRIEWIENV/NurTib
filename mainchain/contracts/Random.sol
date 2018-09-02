@@ -26,7 +26,6 @@ contract Random{
       uint32    commitNum;
       uint32    revealsNum;
 
-      mapping (address => Consumer) consumers;
       mapping (address => Participant) participants;
     }
     
@@ -38,13 +37,15 @@ contract Random{
         bool beSuccess;
     }
     
-    uint16 commitThreshold;
+    uint16 revealRate;
     uint16 revealThreshold;
     uint256 numCampaigns;
     LogItem[] logs;
     Campaign[] campaigns;
     address public founder;
+    address[] contracts;
     
+    modifier OnlyOwner(){ require(founder==msg.sender);_;}
     modifier IsBlankAddress(address _n){assert(_n==0);_;}
     modifier IsPositive(uint256 _deposit){assert(_deposit>0);_;}
     modifier NotBlank(bytes32 _s){require(_s!="");_;}
@@ -59,10 +60,8 @@ contract Random{
       _;
     }
     
-    modifier CheckThreshold(uint16 _commitThreshold,uint16 _revealThreshold){
-        assert(_commitThreshold>0);
+    modifier CheckThreshold(uint16 _revealThreshold){
         assert(_revealThreshold>0);
-        require(_revealThreshold<=_commitThreshold);
         _;
     }
     
@@ -104,28 +103,23 @@ contract Random{
     event LogCampaignAdded(uint256 indexed campaignID,
                          address indexed from,
                          uint32 indexed bnum,
-                         uint96 deposit,
                          uint16 commitBalkline,
-                         uint16 commitDeadline,
-                         uint256 bountypot);
+                         uint16 commitDeadline);
                          
     event LogFollow(uint256 indexed CampaignId, address indexed from, uint256 bountypot);
     event LogCommit(uint256 indexed CampaignId, address indexed from, bytes32 commitment);
     event LogReveal(uint256 indexed CampaignId, address indexed from, uint256 secret);
-    event LogSetThreshold(uint16 _commitThreshold,uint16 _revealThreshold);
+    event LogSetThreshold(uint16 _revealThreshold);
     
     function Random(){
         founder=msg.sender;
     }
     
-    function setThreshold(
-        uint16 _commitThreshold,
-        uint16 _revealThreshold
-        ) CheckThreshold(_commitThreshold,_revealThreshold) external{
-            commitThreshold=_commitThreshold;
+    function setThreshold (uint16 _revealThreshold) OnlyOwner CheckThreshold(_revealThreshold) external{
             revealThreshold=_revealThreshold;
-            LogSetThreshold(_commitThreshold,_revealThreshold);
-        }
+            LogSetThreshold(_revealThreshold);
+    }
+    
     
     function newCampaign(
       uint32 _bnum,
@@ -140,33 +134,12 @@ contract Random{
           Campaign c = campaigns[_campaignID];
           numCampaigns++;
           c.bnum = _bnum;
-          c.deposit = _deposit;
           c.commitBalkline = _commitBalkline;
           c.commitDeadline = _commitDeadline;
-          c.bountypot = msg.value;
-          c.consumers[msg.sender] = Consumer(msg.sender, msg.value);
-          LogCampaignAdded(_campaignID, msg.sender, _bnum, _deposit, _commitBalkline, _commitDeadline, msg.value);
+          LogCampaignAdded(_campaignID, msg.sender, _bnum, _commitBalkline, _commitDeadline);
     }
     
-    function follow(uint256 _campaignID)external payable returns (bool) {
-          Campaign c = campaigns[_campaignID];
-          Consumer consumer = c.consumers[msg.sender];
-          return followCampaign(_campaignID, c, consumer);
-    }
-    
-    function followCampaign(
-      uint256 _campaignID,
-      Campaign storage c,
-      Consumer storage consumer
-      ) CheckFollowPhase(c.bnum, c.commitDeadline)
-        IsBlankAddress(consumer.caddr) internal returns (bool) {
-          c.bountypot += msg.value;
-          c.consumers[msg.sender] = Consumer(msg.sender, msg.value);
-          LogFollow(_campaignID, msg.sender, msg.value);
-          return true;
-    }
-    
-    function commit(uint256 _campaignID, bytes32 _hs) NotBlank(_hs) external payable {
+    function commit(uint256 _campaignID, bytes32 _hs) NotBlank(_hs) payable {
       Campaign c = campaigns[_campaignID];
       commitmentCampaign(_campaignID, _hs, c);
     }
@@ -183,7 +156,8 @@ contract Random{
           LogCommit(_campaignID, msg.sender, _hs);
     }
     
-    function reveal(uint256 _campaignID, uint256 _s) external {
+    
+    function reveal(uint256 _campaignID, uint256 _s)  {
       Campaign c = campaigns[_campaignID];
       Participant p = c.participants[msg.sender];
       revealCampaign(_campaignID, _s, c, p);
@@ -203,7 +177,13 @@ contract Random{
               LogReveal(_campaignID, msg.sender, _s);
     }
     
-    function getRandom(uint256 _campaignID) external returns (uint256) {
+    function getCurrentRandom() public returns (uint256){
+        uint256 campaignsLen=campaigns.length;
+        require(campaignsLen>0);
+        return getRandom(campaigns.length-1);
+    }
+    
+    function getRandom(uint256 _campaignID) internal returns (uint256) {
         Campaign c = campaigns[_campaignID];
         return returnRandom(_campaignID,c);
     }
@@ -223,7 +203,7 @@ contract Random{
         logs[logTotal]=LogItem(msg.sender,id,now,_random,beSuccess);
     }
     
-    function getLogsList(address account) returns(uint){
+    function getLogsList(address account) returns(uint256[]){
         uint[] ids;
         uint idLen=0;
         uint logLen=logs.length;
@@ -245,66 +225,8 @@ contract Random{
         return (item.account,item.id,item.timestamp,item.random,item.beSuccess);
     }
     
-    function getMyBounty(uint256 _campaignID) external {
-      Campaign c = campaigns[_campaignID];
-      Participant p = c.participants[msg.sender];
-      transferBounty(c, p);
-    }
-
-    function transferBounty(
-      Campaign storage c,
-      Participant storage p
-    ) BountyPhase(c.bnum)
-      IsFalse(p.rewarded) internal {
-      if (c.revealsNum > 0) {
-          if (p.revealed) {
-              uint256 share = calculateShare(c);
-              returnReward(share, c, p);
-          }
-      } else {
-          returnReward(0, c, p);
-      }
-    }
-
-    function calculateShare(Campaign c) internal returns (uint256 _share) {
-      if (c.commitNum > c.revealsNum) {
-          _share = fines(c) / c.revealsNum;
-      } else {
-          _share = c.bountypot / c.revealsNum;
-      }
-    }
-
-    function returnReward(
-      uint256 _share,
-      Campaign storage c,
-      Participant storage p ) internal {
-          p.reward = _share;
-          p.rewarded = true;
-          if (!msg.sender.send(_share + c.deposit)) {
-              p.reward = 0;
-              p.rewarded = false;
-          }
-    }
-
-    function fines(Campaign c) internal returns (uint256) {
-        return (c.commitNum - c.revealsNum) * c.deposit;
-    }
-
-    function refundBounty(uint256 _campaignID) external {
-          Campaign c = campaigns[_campaignID];
-          returnBounty(_campaignID, c);
-    }
     
-    function returnBounty(uint256 _campaignID, Campaign storage c)
-        BountyPhase(c.bnum)
-        CampaignFailed(c.commitNum, c.revealsNum)
-        IsConsumer(c.consumers[msg.sender].caddr) internal {
-          uint256 bountypot = c.consumers[msg.sender].bountypot;
-          c.consumers[msg.sender].bountypot = 0;
-          if (!msg.sender.send(bountypot)) {
-              c.consumers[msg.sender].bountypot = bountypot;
-          }
-    }
+    function () payable{}
     
     //test
     function getBlockNumber() external returns(uint256){return block.number;}
