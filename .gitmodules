@@ -1,3 +1,6 @@
 [submodule "CITA/cita"]
 	path = CITA/cita
 	url = https://github.com/cryptape/cita
+[submodule "cita/cita"]
+	path = cita/cita
+	url = https://github.com/cryptape/cita.git
