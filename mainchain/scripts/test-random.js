@@ -1,6 +1,7 @@
 const nervos = require('../nervos');
 const Web3Utils = require('web3-utils');
-const abi = [{"constant":false,"inputs":[],"name":"getBlockNumber","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"founder","outputs":[{"name":"","type":"address"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_id","type":"uint256"}],"name":"getLogItem","outputs":[{"name":"","type":"address"},{"name":"","type":"uint256"},{"name":"","type":"uint256"},{"name":"","type":"uint256"},{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[{"name":"_campaignID","type":"uint256"}],"name":"getCommitment","outputs":[{"name":"","type":"bytes32"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_revealThreshold","type":"uint16"}],"name":"setThreshold","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"_s","type":"uint256"}],"name":"shaCommit","outputs":[{"name":"","type":"bytes32"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"_campaignID","type":"uint256"},{"name":"_s","type":"uint256"}],"name":"reveal","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"account","type":"address"}],"name":"getLogsList","outputs":[{"name":"","type":"uint256[]"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[],"name":"newCampaign","outputs":[{"name":"_campaignID","type":"uint256"}],"payable":true,"stateMutability":"payable","type":"function"},{"constant":false,"inputs":[],"name":"getLogsCount","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[],"name":"getCurrentRandom","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"_campaignID","type":"uint256"},{"name":"_hs","type":"bytes32"}],"name":"commit","outputs":[],"payable":true,"stateMutability":"payable","type":"function"},{"inputs":[],"payable":false,"stateMutability":"nonpayable","type":"constructor"},{"payable":true,"stateMutability":"payable","type":"fallback"},{"anonymous":false,"inputs":[{"indexed":true,"name":"campaignID","type":"uint256"},{"indexed":true,"name":"from","type":"address"},{"indexed":false,"name":"bountypot","type":"uint256"}],"name":"LogCampaignAdded","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"name":"CampaignId","type":"uint256"},{"indexed":true,"name":"from","type":"address"},{"indexed":false,"name":"bountypot","type":"uint256"}],"name":"LogFollow","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"name":"CampaignId","type":"uint256"},{"indexed":true,"name":"from","type":"address"},{"indexed":false,"name":"commitment","type":"bytes32"}],"name":"LogCommit","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"name":"CampaignId","type":"uint256"},{"indexed":true,"name":"from","type":"address"},{"indexed":false,"name":"secret","type":"uint256"}],"name":"LogReveal","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"name":"_revealThreshold","type":"uint16"}],"name":"LogSetThreshold","type":"event"}]
+
+const abi = [{"constant":false,"inputs":[],"name":"getBlockNumber","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"founder","outputs":[{"name":"","type":"address"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_id","type":"uint256"}],"name":"getLogItem","outputs":[{"name":"","type":"address"},{"name":"","type":"uint256"},{"name":"","type":"uint256"},{"name":"","type":"uint256"},{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[{"name":"_campaignID","type":"uint256"}],"name":"getCommitment","outputs":[{"name":"","type":"bytes32"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_revealThreshold","type":"uint16"}],"name":"setThreshold","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"_s","type":"uint256"}],"name":"shaCommit","outputs":[{"name":"","type":"bytes32"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"_campaignID","type":"uint256"},{"name":"_s","type":"uint256"}],"name":"reveal","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"account","type":"address"}],"name":"getLogsList","outputs":[{"name":"","type":"uint256[]"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"_bnum","type":"uint32"},{"name":"_deposit","type":"uint96"},{"name":"_commitBalkline","type":"uint16"},{"name":"_commitDeadline","type":"uint16"}],"name":"newCampaign","outputs":[{"name":"_campaignID","type":"uint256"}],"payable":true,"stateMutability":"payable","type":"function"},{"constant":false,"inputs":[],"name":"getLogsCount","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[],"name":"getCurrentRandom","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"_campaignID","type":"uint256"},{"name":"_hs","type":"bytes32"}],"name":"commit","outputs":[],"payable":true,"stateMutability":"payable","type":"function"},{"inputs":[],"payable":false,"stateMutability":"nonpayable","type":"constructor"},{"payable":true,"stateMutability":"payable","type":"fallback"},{"anonymous":false,"inputs":[{"indexed":true,"name":"campaignID","type":"uint256"},{"indexed":true,"name":"from","type":"address"},{"indexed":true,"name":"bnum","type":"uint32"},{"indexed":false,"name":"commitBalkline","type":"uint16"},{"indexed":false,"name":"commitDeadline","type":"uint16"}],"name":"LogCampaignAdded","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"name":"CampaignId","type":"uint256"},{"indexed":true,"name":"from","type":"address"},{"indexed":false,"name":"bountypot","type":"uint256"}],"name":"LogFollow","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"name":"CampaignId","type":"uint256"},{"indexed":true,"name":"from","type":"address"},{"indexed":false,"name":"commitment","type":"bytes32"}],"name":"LogCommit","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"name":"CampaignId","type":"uint256"},{"indexed":true,"name":"from","type":"address"},{"indexed":false,"name":"secret","type":"uint256"}],"name":"LogReveal","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"name":"_revealThreshold","type":"uint16"}],"name":"LogSetThreshold","type":"event"}]
 
 const tx = {
   from: nervos.appchain.accounts.wallet[0].address,
@@ -70,7 +71,7 @@ nervos.appchain.accounts.wallet.add(account2)
 nervos.appchain.accounts.wallet.add(account3)
 
 
-const randomContract = new nervos.appchain.Contract(abi, "0x130449c688a58cdEFB2Bc8AB631479B34eED3d1B");
+const randomContract = new nervos.appchain.Contract(abi, "0x97e5Cd9642ba9765518b9BF2E2c0245fE239270a");
 
 // nervos.appchain.getBalance(nervos.appchain.accounts.wallet[0].address).then(console.log);
 // console.log(`Interact with contract at ${contractAddress}`);
@@ -84,8 +85,8 @@ const current_time = new Date().getTime();
 const random_str = current_time.toString() + Math.floor((Math.random() * (1000 - 100) + 100)).toString() ;
 // hash the random string and input to the smart contracts
 const input = Web3Utils.soliditySha3(random_str)
-console.log(input);
-console.log(typeof(input))
+// console.log(input);
+// console.log(typeof(input))
 
 let counter = 0;
 // console.log('counter type: ' + typeof(counter));
@@ -98,20 +99,21 @@ while (counter<1){
         .getBlockNumber()
         .then(current => {
             console.log('Get current round: ' + current>>>0)
-            tx0.validUntilBlock = +current + 88
+            tx.validUntilBlock = +current + 88
             //console.log(JSON.stringify(randomContract, null, 2))
             // >>> converts number to 32-bit unsigned int
-            return randomContract.methods.commit(counter>>>0, input).send(tx0)
+            return randomContract.methods.commit(counter>>>0, input).send(tx)
         })
         .then(res => {
             if(res.hash){
-                return nervos.listeners.listenToTransactionReceipt(res)
+                return nervos.listeners.listenToTransactionReceipt(res.hash)
             } else {
                 throw new Error('No Transaction Hash Received')
             }
         })
         .then(receipt => {
             if (!receipt.errorMessage) {
+                console.log('Success')
                 console.log(receipt)
             } else {
                 throw new Error(receipt.errorMessage)
