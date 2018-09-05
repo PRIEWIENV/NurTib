@@ -1,6 +1,5 @@
 pragma solidity ^0.4.24;
 
-/* contractAddress is: 0x97e5Cd9642ba9765518b9BF2E2c0245fE239270a */
 contract Random{
     struct Participant{
         uint256 secret;                       
@@ -57,7 +56,7 @@ contract Random{
       assert(_commitBalkline > 0);
       assert(_commitDeadline > 0);
       require(_commitDeadline < _commitBalkline);
-      require(block.number < _bnum - _commitBalkline);
+      require(block.number <= _bnum - _commitBalkline);
       _;
     }
     
@@ -114,6 +113,7 @@ contract Random{
     
     function Random(){
         founder=msg.sender;
+        revealThreshold=2;
     }
     
     function setThreshold (uint16 _revealThreshold) OnlyOwner CheckThreshold(_revealThreshold) external{
@@ -127,9 +127,8 @@ contract Random{
       uint96 _deposit,
       uint16 _commitBalkline,
       uint16 _commitDeadline
-      ) payable
-        TimeLineCheck(_bnum, _commitBalkline, _commitDeadline)
-         external returns (uint256 _campaignID) {
+      ) TimeLineCheck(_bnum, _commitBalkline, _commitDeadline)
+         internal returns (uint256 _campaignID) {
           
           _campaignID = campaigns.length++;
           Campaign c = campaigns[_campaignID];
@@ -141,6 +140,9 @@ contract Random{
     }
     
     function commit(uint256 _campaignID, bytes32 _hs) NotBlank(_hs) payable {
+      if(_campaignID+1>=campaigns.length) {
+          newCampaign(uint32(block.number)+40,0,40,20);
+      }
       Campaign c = campaigns[_campaignID];
       commitmentCampaign(_campaignID, _hs, c);
     }
@@ -156,7 +158,6 @@ contract Random{
           c.commitNum++;
           LogCommit(_campaignID, msg.sender, _hs);
     }
-    
     
     function reveal(uint256 _campaignID, uint256 _s)  {
       Campaign c = campaigns[_campaignID];
