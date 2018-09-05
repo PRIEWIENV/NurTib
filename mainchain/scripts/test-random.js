@@ -71,8 +71,7 @@ nervos.appchain.accounts.wallet.add(account2)
 nervos.appchain.accounts.wallet.add(account3)
 
 
-const randomContract = new nervos.appchain.Contract(abi, "0x97e5Cd9642ba9765518b9BF2E2c0245fE239270a");
-
+const randomContract = new nervos.appchain.Contract(abi, "0xE06a6060CC449aE5cAf2457B4252357Fc0030B87");
 // nervos.appchain.getBalance(nervos.appchain.accounts.wallet[0].address).then(console.log);
 // console.log(`Interact with contract at ${contractAddress}`);
 // nervos.appchain.getAccounts().then(console.log);
