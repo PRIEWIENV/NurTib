@@ -1,7 +1,130 @@
 pragma solidity ^0.4.24;
 
 /* contractAddress is: 0x97e5Cd9642ba9765518b9BF2E2c0245fE239270a*/
+
+/**
+ * @title SafeMath
+ * @dev Math operations with safety checks that revert on error
+ */
+library SafeMath {
+
+    /**
+    * @dev Multiplies two numbers, reverts on overflow.
+    */
+    function mul(uint256 _a, uint256 _b) internal pure returns (uint256) {
+        // Gas optimization: this is cheaper than requiring 'a' not being zero, but the
+        // benefit is lost if 'b' is also tested.
+        // See: https://github.com/OpenZeppelin/openzeppelin-solidity/pull/522
+        if (_a == 0) {
+            return 0;
+        }
+
+        uint256 c = _a * _b;
+        require(c / _a == _b);
+
+        return c;
+    }
+
+    /**
+    * @dev Integer division of two numbers truncating the quotient, reverts on division by zero.
+    */
+    function div(uint256 _a, uint256 _b) internal pure returns (uint256) {
+        require(_b > 0); // Solidity only automatically asserts when dividing by 0
+        uint256 c = _a / _b;
+        // assert(_a == _b * c + _a % _b); // There is no case in which this doesn't hold
+
+        return c;
+    }
+
+    /**
+    * @dev Subtracts two numbers, reverts on overflow (i.e. if subtrahend is greater than minuend).
+    */
+    function sub(uint256 _a, uint256 _b) internal pure returns (uint256) {
+        require(_b <= _a);
+        uint256 c = _a - _b;
+
+        return c;
+    }
+
+    /**
+    * @dev Adds two numbers, reverts on overflow.
+    */
+    function add(uint256 _a, uint256 _b) internal pure returns (uint256) {
+        uint256 c = _a + _b;
+        require(c >= _a);
+
+        return c;
+    }
+
+    /**
+    * @dev Divides two numbers and returns the remainder (unsigned integer modulo),
+    * reverts when dividing by zero.
+    */
+    function mod(uint256 a, uint256 b) internal pure returns (uint256) {
+        require(b != 0);
+        return a % b;
+    }
+}
+
+
+/**
+ * @title Owned
+ */
+contract Owned {
+    address public owner;
+    address public newOwner;
+    mapping (address => bool) public admins;
+
+    event OwnershipTransferred(
+        address indexed _from, 
+        address indexed _to
+    );
+
+    modifier onlyOwner {
+        require(msg.sender == owner);
+        _;
+    }
+
+    modifier onlyAdmins {
+        require(admins[msg.sender]);
+        _;
+    }
+
+    function transferOwnership(address _newOwner) 
+        public 
+        onlyOwner 
+    {
+        newOwner = _newOwner;
+    }
+
+    function acceptOwnership() 
+        public 
+    {
+        require(msg.sender == newOwner);
+        emit OwnershipTransferred(owner, newOwner);
+        owner = newOwner;
+        newOwner = address(0);
+    }
+
+    function addAdmin(address _admin) 
+        onlyOwner 
+        public 
+    {
+        admins[_admin] = true;
+    }
+
+    function removeAdmin(address _admin) 
+        onlyOwner 
+        public 
+    {
+        delete admins[_admin];
+    }
+
+}
+
+
 contract Random{
+    using SafeMath for uint256;
     struct Participant{
         uint256 secret;                       
         bytes32 commitment;
@@ -17,13 +140,11 @@ contract Random{
     
     struct Campaign {
       uint32    bnum;
-      uint96    deposit;
       uint16    commitBalkline;
       uint16    commitDeadline;
       
       uint256   random;
       bool      settled;
-      uint256   bountypot;
       uint32    commitNum;
       uint32    revealsNum;
 
@@ -40,6 +161,8 @@ contract Random{
     
     uint16 revealRate;
     uint16 revealThreshold;
+    uint16 commitBalkline;
+    uint16 commitDeadline;
     uint256 numCampaigns;
     LogItem[] logs;
     Campaign[] campaigns;
@@ -89,8 +212,6 @@ contract Random{
       _;
     }
     
-    modifier BountyPhase(uint256 _bnum){ require(block.number >= _bnum); _; }
-    
     modifier CampaignFailed(uint32 _commitNum, uint32 _revealsNum) {
       require(_commitNum != _revealsNum || _commitNum == 0);
       _;
@@ -110,22 +231,27 @@ contract Random{
     event LogFollow(uint256 indexed CampaignId, address indexed from, uint256 bountypot);
     event LogCommit(uint256 indexed CampaignId, address indexed from, bytes32 commitment);
     event LogReveal(uint256 indexed CampaignId, address indexed from, uint256 secret);
-    event LogSetThreshold(uint16 _revealThreshold);
+    event LogSetParams(uint16 _revealThreshold,uint16 _commitBalkline,uint16 _commitDeadline);
     
     function Random(){
         founder=msg.sender;
-        revealThreshold=2;
+        revealThreshold=1;
+        commitDeadline=4;
+        commitBalkline=8;
     }
     
-    function setThreshold (uint16 _revealThreshold) OnlyOwner CheckThreshold(_revealThreshold) external{
+    function setParams (uint16 _revealThreshold,
+                        uint16 _commitBalkline,
+                        uint16 _commitDeadline) OnlyOwner CheckThreshold(_revealThreshold) external{
             revealThreshold=_revealThreshold;
-            LogSetThreshold(_revealThreshold);
+            commitBalkline=_commitBalkline;
+            commitDeadline=_commitDeadline;
+            LogSetParams(_revealThreshold,_commitBalkline,_commitDeadline);
     }
     
     
     function newCampaign(
       uint32 _bnum,
-      uint96 _deposit,
       uint16 _commitBalkline,
       uint16 _commitDeadline
       ) TimeLineCheck(_bnum, _commitBalkline, _commitDeadline)
@@ -140,30 +266,32 @@ contract Random{
           LogCampaignAdded(_campaignID, msg.sender, _bnum, _commitBalkline, _commitDeadline);
     }
     
-    function commit(uint256 _campaignID, bytes32 _hs) NotBlank(_hs) payable{
+    function commit(uint256 _campaignID, bytes32 _hs) NotBlank(_hs) payable returns(uint256){
       if(_campaignID+1>=campaigns.length) {
-          newCampaign(uint32(block.number)+40,0,40,20);
+          newCampaign(uint32(block.number)+commitBalkline,commitBalkline,commitDeadline);
       }
+      require(campaigns[_campaignID].bnum>0);
       Campaign c = campaigns[_campaignID];
       commitmentCampaign(_campaignID, _hs, c);
+      return _campaignID;
     }
     
     function commitmentCampaign(
       uint256 _campaignID,
       bytes32 _hs,
       Campaign storage c
-      ) CheckDeposit(c.deposit)
-        CheckCommitPhase(c.bnum, c.commitBalkline, c.commitDeadline)
+      )CheckCommitPhase(c.bnum, c.commitBalkline, c.commitDeadline)
         IsBlank(c.participants[msg.sender].commitment) internal {
           c.participants[msg.sender] = Participant(0, _hs, 0, false, false);
           c.commitNum++;
           LogCommit(_campaignID, msg.sender, _hs);
     }
     
-    function reveal(uint256 _campaignID, uint256 _s)  {
+    function reveal(uint256 _campaignID, uint256 _s)public returns(uint256){
       Campaign c = campaigns[_campaignID];
       Participant p = c.participants[msg.sender];
       revealCampaign(_campaignID, _s, c, p);
+      return _campaignID;
     }
     
     function revealCampaign(
@@ -191,7 +319,7 @@ contract Random{
         return returnRandom(_campaignID,c);
     }
 
-    function returnRandom(uint256 _campaignID,Campaign storage c) BountyPhase(c.bnum) internal returns (uint256) {
+    function returnRandom(uint256 _campaignID,Campaign storage c) internal returns (uint256) {
         uint256 _random=c.random;
         if (c.revealsNum >= revealThreshold) {
             c.settled = true;
