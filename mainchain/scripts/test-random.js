@@ -88,50 +88,65 @@ const input = Web3Utils.soliditySha3(random_str)
 // console.log(input);
 // console.log(typeof(input))
 
-let counter = 1;
 // console.log('counter type: ' + typeof(counter));
 // console.log('counter type: ' + typeof(counter>>>0));
 
+async function run_random() {
+
+let counter = 2;
+
+while (counter < 3) {
+
+    await nervos.appchain
+        .getBlockNumber()
+        .then(current => {
+            console.log('Get current height: ' + current)
+            tx0.validUntilBlock = +current + 88
+            //console.log(JSON.stringify(randomContract, null, 2))
+            // >>> converts number to 32-bit unsigned int
+            /* counter <uint256>, input <bytes32> */
+            return randomContract.methods.commit(counter>>>0, input).send(tx0)
+        })
+        .then(res => {
+            if(res.hash){
+                return nervos.listeners.listenToTransactionReceipt(res.hash)
+            } else {
+                throw new Error('No Transaction Hash Received')
+            }
+        })
+        .then(receipt => {
+            if (!receipt.errorMessage) {
+                console.log('Success')
+                console.log(receipt)
+            } else {
+                throw new Error(receipt.errorMessage)
+            }
+        })
+        .catch(err => {
+            console.log(err)
+        })
 
 
-nervos.appchain
-    .getBlockNumber()
-    .then(current => {
-        console.log('Get current height: ' + current)
-        tx0.validUntilBlock = +current + 88
-        //console.log(JSON.stringify(randomContract, null, 2))
-        // >>> converts number to 32-bit unsigned int
-        /* counter <uint256>, input <bytes32> */
-        return randomContract.methods.commit(1, input).send(tx0)
-    })
-    .then(res => {
-        if(res.hash){
-            return nervos.listeners.listenToTransactionReceipt(res.hash)
-        } else {
-            throw new Error('No Transaction Hash Received')
-        }
-    })
-    .then(receipt => {
-        if (!receipt.errorMessage) {
-            console.log('Success')
-            console.log(receipt)
-        } else {
-            throw new Error(receipt.errorMessage)
-        }
-    })
-    .catch(err => {
-        console.log(err)
-    })
+    console.log('Current round: ' + counter)
+    counter++;
 
-// async () => {
-//     const current = await nervos.appchain.getBlockNumber()
-//     tx0.validUntilBlock = +current + 88 // update transaction.validUntilBlock
-//     const txResult = await randomContract.methods.commit(counter, input).send(tx0) // sendTransaction to the contract
-//     const receipt = await nervos.listeners.listenToTransactionReceipt(txResult.hash) // listen to the receipt
-//     expect(receipt.errorMessage).toBeNull()
-//     await console.log('Result: \n' + txResult.hash)
-//     await console.log('Receipt: \n '+ receipt)
-// }
+
+}
+
+
+
+}
+
+
+//.async () => {
+//.     const current = await nervos.appchain.getBlockNumber()
+//.     tx0.validUntilBlock = +current + 88 // update transaction.validUntilBlock
+//.     const txResult = await randomContract.methods.commit(counter, input).send(tx0) // sendTransaction to the contract
+//.     const receipt = await nervos.listeners.listenToTransactionReceipt(txResult.hash) // listen to the receipt
+//.     expect(receipt.errorMessage).toBeNull()
+//.     await console.log('Result: \n' + txResult.hash)
+//.     await console.log('Receipt: \n '+ receipt)
+//.}
 
 //randomContract.methods.reveal(counter, random_str).send(tx0);
 
@@ -145,6 +160,4 @@ nervos.appchain
 //randomContract.methods.commit(input).send(tx3);
 //randomContract.methods.reveal(random_str).send(tx3);
 
-console.log('Current round: ' + counter)
-counter++;
-
+run_random()
