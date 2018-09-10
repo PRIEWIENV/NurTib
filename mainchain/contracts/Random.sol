@@ -1,6 +1,6 @@
 pragma solidity ^0.4.24;
 
-/* contractAddress is: 0xE06a6060CC449aE5cAf2457B4252357Fc0030B87 */
+/* contractAddress is: 0x97e5Cd9642ba9765518b9BF2E2c0245fE239270a*/
 contract Random{
     struct Participant{
         uint256 secret;                       
@@ -140,7 +140,7 @@ contract Random{
           LogCampaignAdded(_campaignID, msg.sender, _bnum, _commitBalkline, _commitDeadline);
     }
     
-    function commit(uint256 _campaignID, bytes32 _hs) NotBlank(_hs) payable {
+    function commit(uint256 _campaignID, bytes32 _hs) NotBlank(_hs) payable{
       if(_campaignID+1>=campaigns.length) {
           newCampaign(uint32(block.number)+40,0,40,20);
       }

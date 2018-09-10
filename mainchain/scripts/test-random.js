@@ -1,7 +1,7 @@
 const nervos = require('../nervos');
 const Web3Utils = require('web3-utils');
 
-const abi = [{"constant":false,"inputs":[],"name":"getBlockNumber","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"founder","outputs":[{"name":"","type":"address"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_id","type":"uint256"}],"name":"getLogItem","outputs":[{"name":"","type":"address"},{"name":"","type":"uint256"},{"name":"","type":"uint256"},{"name":"","type":"uint256"},{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[{"name":"_campaignID","type":"uint256"}],"name":"getCommitment","outputs":[{"name":"","type":"bytes32"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_revealThreshold","type":"uint16"}],"name":"setThreshold","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"_s","type":"uint256"}],"name":"shaCommit","outputs":[{"name":"","type":"bytes32"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"_campaignID","type":"uint256"},{"name":"_s","type":"uint256"}],"name":"reveal","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"account","type":"address"}],"name":"getLogsList","outputs":[{"name":"","type":"uint256[]"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[],"name":"getLogsCount","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[],"name":"getCurrentRandom","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"_campaignID","type":"uint256"},{"name":"_hs","type":"bytes32"}],"name":"commit","outputs":[],"payable":true,"stateMutability":"payable","type":"function"},{"inputs":[],"payable":false,"stateMutability":"nonpayable","type":"constructor"},{"payable":true,"stateMutability":"payable","type":"fallback"},{"anonymous":false,"inputs":[{"indexed":true,"name":"campaignID","type":"uint256"},{"indexed":true,"name":"from","type":"address"},{"indexed":true,"name":"bnum","type":"uint32"},{"indexed":false,"name":"commitBalkline","type":"uint16"},{"indexed":false,"name":"commitDeadline","type":"uint16"}],"name":"LogCampaignAdded","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"name":"CampaignId","type":"uint256"},{"indexed":true,"name":"from","type":"address"},{"indexed":false,"name":"bountypot","type":"uint256"}],"name":"LogFollow","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"name":"CampaignId","type":"uint256"},{"indexed":true,"name":"from","type":"address"},{"indexed":false,"name":"commitment","type":"bytes32"}],"name":"LogCommit","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"name":"CampaignId","type":"uint256"},{"indexed":true,"name":"from","type":"address"},{"indexed":false,"name":"secret","type":"uint256"}],"name":"LogReveal","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"name":"_revealThreshold","type":"uint16"}],"name":"LogSetThreshold","type":"event"}]
+const abi = [{"constant":false,"inputs":[],"name":"getBlockNumber","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"founder","outputs":[{"name":"","type":"address"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_id","type":"uint256"}],"name":"getLogItem","outputs":[{"name":"","type":"address"},{"name":"","type":"uint256"},{"name":"","type":"uint256"},{"name":"","type":"uint256"},{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[{"name":"_campaignID","type":"uint256"}],"name":"getCommitment","outputs":[{"name":"","type":"bytes32"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_revealThreshold","type":"uint16"}],"name":"setThreshold","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"_s","type":"uint256"}],"name":"shaCommit","outputs":[{"name":"","type":"bytes32"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"_campaignID","type":"uint256"},{"name":"_s","type":"uint256"}],"name":"reveal","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"account","type":"address"}],"name":"getLogsList","outputs":[{"name":"","type":"uint256[]"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[],"name":"getLogsCount","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[],"name":"getCurrentRandom","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"_campaignID","type":"uint256"},{"name":"_hs","type":"bytes32"}],"name":"commit","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"inputs":[],"payable":false,"stateMutability":"nonpayable","type":"constructor"},{"payable":true,"stateMutability":"payable","type":"fallback"},{"anonymous":false,"inputs":[{"indexed":true,"name":"campaignID","type":"uint256"},{"indexed":true,"name":"from","type":"address"},{"indexed":true,"name":"bnum","type":"uint32"},{"indexed":false,"name":"commitBalkline","type":"uint16"},{"indexed":false,"name":"commitDeadline","type":"uint16"}],"name":"LogCampaignAdded","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"name":"CampaignId","type":"uint256"},{"indexed":true,"name":"from","type":"address"},{"indexed":false,"name":"bountypot","type":"uint256"}],"name":"LogFollow","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"name":"CampaignId","type":"uint256"},{"indexed":true,"name":"from","type":"address"},{"indexed":false,"name":"commitment","type":"bytes32"}],"name":"LogCommit","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"name":"CampaignId","type":"uint256"},{"indexed":true,"name":"from","type":"address"},{"indexed":false,"name":"secret","type":"uint256"}],"name":"LogReveal","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"name":"_revealThreshold","type":"uint16"}],"name":"LogSetThreshold","type":"event"}]
 
 const tx = {
   from: nervos.appchain.accounts.wallet[0].address,
@@ -71,7 +71,8 @@ nervos.appchain.accounts.wallet.add(account2)
 nervos.appchain.accounts.wallet.add(account3)
 
 
-const randomContract = new nervos.appchain.Contract(abi, "0xE06a6060CC449aE5cAf2457B4252357Fc0030B87");
+const randomContract = new nervos.appchain.Contract(abi, "0x97e5Cd9642ba9765518b9BF2E2c0245fE239270a");
+
 // nervos.appchain.getBalance(nervos.appchain.accounts.wallet[0].address).then(console.log);
 // console.log(`Interact with contract at ${contractAddress}`);
 // nervos.appchain.getAccounts().then(console.log);
@@ -91,61 +92,59 @@ let counter = 1;
 // console.log('counter type: ' + typeof(counter));
 // console.log('counter type: ' + typeof(counter>>>0));
 
-while (counter<2){
 
 
-    nervos.appchain
-        .getBlockNumber()
-        .then(current => {
-            console.log('Get current height: ' + current)
-            tx0.validUntilBlock = +current + 88
-            //console.log(JSON.stringify(randomContract, null, 2))
-            // >>> converts number to 32-bit unsigned int
-            /* counter <uint256>, input <bytes32> */
-            return randomContract.methods.commit(counter>>>0, input).send(tx0)
-        })
-        .then(res => {
-            if(res.hash){
-                return nervos.listeners.listenToTransactionReceipt(res.hash)
-            } else {
-                throw new Error('No Transaction Hash Received')
-            }
-        })
-        .then(receipt => {
-            if (!receipt.errorMessage) {
-                console.log('Success')
-                console.log(receipt)
-            } else {
-                throw new Error(receipt.errorMessage)
-            }
-        })
-        .catch(err => {
-            console.log(err)
-        })
+nervos.appchain
+    .getBlockNumber()
+    .then(current => {
+        console.log('Get current height: ' + current)
+        tx0.validUntilBlock = +current + 88
+        //console.log(JSON.stringify(randomContract, null, 2))
+        // >>> converts number to 32-bit unsigned int
+        /* counter <uint256>, input <bytes32> */
+        return randomContract.methods.commit(1, input).send(tx0)
+    })
+    .then(res => {
+        if(res.hash){
+            return nervos.listeners.listenToTransactionReceipt(res.hash)
+        } else {
+            throw new Error('No Transaction Hash Received')
+        }
+    })
+    .then(receipt => {
+        if (!receipt.errorMessage) {
+            console.log('Success')
+            console.log(receipt)
+        } else {
+            throw new Error(receipt.errorMessage)
+        }
+    })
+    .catch(err => {
+        console.log(err)
+    })
 
-    // async () => {
-    //     const current = await nervos.appchain.getBlockNumber()
-    //     tx0.validUntilBlock = +current + 88 // update transaction.validUntilBlock
-    //     const txResult = await randomContract.methods.commit(counter, input).send(tx0) // sendTransaction to the contract
-    //     const receipt = await nervos.listeners.listenToTransactionReceipt(txResult.hash) // listen to the receipt
-    //     expect(receipt.errorMessage).toBeNull()
-    //     await console.log('Result: \n' + txResult.hash)
-    //     await console.log('Receipt: \n '+ receipt)
-    // }
+// async () => {
+//     const current = await nervos.appchain.getBlockNumber()
+//     tx0.validUntilBlock = +current + 88 // update transaction.validUntilBlock
+//     const txResult = await randomContract.methods.commit(counter, input).send(tx0) // sendTransaction to the contract
+//     const receipt = await nervos.listeners.listenToTransactionReceipt(txResult.hash) // listen to the receipt
+//     expect(receipt.errorMessage).toBeNull()
+//     await console.log('Result: \n' + txResult.hash)
+//     await console.log('Receipt: \n '+ receipt)
+// }
 
-    //randomContract.methods.reveal(counter, random_str).send(tx0);
+//randomContract.methods.reveal(counter, random_str).send(tx0);
 
 
-    //randomContract.methods.commit(input).send(tx1);
-    //randomContract.methods.reveal(random_str).send(tx1);
+//randomContract.methods.commit(input).send(tx1);
+//randomContract.methods.reveal(random_str).send(tx1);
 
-    //randomContract.methods.commit(input).send(tx2);
-    //randomContract.methods.reveal(random_str).send(tx2);
+//randomContract.methods.commit(input).send(tx2);
+//randomContract.methods.reveal(random_str).send(tx2);
 
-    //randomContract.methods.commit(input).send(tx3);
-    //randomContract.methods.reveal(random_str).send(tx3);
+//randomContract.methods.commit(input).send(tx3);
+//randomContract.methods.reveal(random_str).send(tx3);
 
-    console.log('Current round: ' + counter)
-    counter++;
+console.log('Current round: ' + counter)
+counter++;
 
-}
