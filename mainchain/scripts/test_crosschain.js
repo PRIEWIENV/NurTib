@@ -26,7 +26,8 @@ const tx1 = {
 // contract contract instance
 const crossTokenContract = new nervos.appchain.Contract(abi, "0x10bDd1684100bbcE6C17E97DB9a3779A000b350B")
 
-nervos.appchain
+function sendToSideChain() {
+  nervos.appchain
   .getBlockNumber()
   .then(current => {
     tx0.validUntilBlock = +current + 88 // update transaction.validUntilBlock
@@ -36,7 +37,7 @@ nervos.appchain
       .sendToSideChain(
         3,
         "0x27Ec3678e4d61534AB8A87cF8FEB8aC110dDeda5",
-        nervos.utils.numberToHex("8")
+        "0x" + "7".padStart(64, "0")
         )
       .send(tx0)
   })
@@ -49,7 +50,7 @@ nervos.appchain
     }
   })
   .then(receipt => {
-    console.log(receipt)
+    // console.log(receipt)
     if (!receipt.errorMessage) {
         console.log('Success')
         console.log(receipt)
@@ -60,3 +61,54 @@ nervos.appchain
   .catch(err => {
       console.log(err)
   })
+}
+
+function recvFromSideChain() {
+  nervos.appchain
+  .getBlockNumber()
+  .then(current => {
+    tx0.validUntilBlock = +current + 88 // update transaction.validUntilBlock
+    // deploy contract
+    return crossTokenContract
+      .methods
+      .recvFromSideChain(
+        "0x27Ec3678e4d61534AB8A87cF8FEB8aC110dDeda5"
+        )
+      .send(tx0)
+  })
+  .then(txRes => {
+    if (txRes.hash) {
+      // get transaction receipt
+      return nervos.listeners.listenToTransactionReceipt(txRes.hash)
+    } else {
+      throw new Error('No Transaction Hash Received')
+    }
+  })
+  .then(receipt => {
+    // console.log(receipt)
+    if (!receipt.errorMessage) {
+        console.log('Success')
+        console.log(receipt)
+    } else {
+        throw new Error(receipt.errorMessage)
+    }
+  })
+  .catch(err => {
+      console.log(err)
+  })
+}
+
+function getTransactionProof() {
+  nervos
+  .appchain
+  .getTransactionProof("0x25854d609892240456f4c4c810cbdf69cfa728a251f50c1579f378f6a20d0f17")
+  .then(proof => {
+    console.log(proof)
+  })
+  .catch(err => {
+      console.log(err)
+  })
+}
+
+// 0x25854d609892240456f4c4c810cbdf69cfa728a251f50c1579f378f6a20d0f17
+sendToSideChain()
