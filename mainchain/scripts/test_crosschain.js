@@ -111,4 +111,4 @@ function getTransactionProof() {
 }
 
 // 0x25854d609892240456f4c4c810cbdf69cfa728a251f50c1579f378f6a20d0f17
-sendToSideChain()
+getTransactionProof()
