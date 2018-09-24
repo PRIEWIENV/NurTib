@@ -275,4 +275,35 @@ async function run_random() {
 //randomContract.methods.commit(input).send(tx3);
 //randomContract.methods.reveal(random_str).send(tx3);
 
-run_random()
+// run_random()
+
+console.log(input)
+
+nervos.appchain
+  .getBlockNumber()
+  .then(current => {
+      console.log('Get current height (0): ' + current)
+      tx1.validUntilBlock = +current + 88
+      //console.log(JSON.stringify(randomContract, null, 2))
+      // >>> converts number to 32-bit unsigned int
+      // counter <uint256>, input <bytes32>
+      return randomContract.methods.commit(2, input).send(tx1)
+  })
+  .then(res => {
+      if(res.hash){
+          return nervos.listeners.listenToTransactionReceipt(res.hash)
+      } else {
+          throw new Error('No Transaction Hash Received')
+      }
+  })
+  .then(receipt => {
+      if (!receipt.errorMessage) {
+          console.log('Success')
+          console.log(receipt)
+      } else {
+          throw new Error(receipt.errorMessage)
+      }
+  })
+  .catch(err => {
+      console.log(err)
+  })
